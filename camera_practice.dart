@@ -1,45 +1,28 @@
-import 'package:flutter/material.dart';
 import 'package:camera/camera.dart';
+import 'package:flutter/material.dart';
 
-Future <void> main() async{
-  WidgetsFlutterBinding.ensureInitialized();
-  final cameras =await availableCameras();
-  runApp(_App(cameras: cameras));
-}
-
-class _App extends StatelessWidget {
-  const _App({required this.cameras, Key? key}) : super(key: key);
-  final List<CameraDescription> cameras;
+class CameraTestPage extends StatefulWidget {
+  const CameraTestPage({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Practice',
-      theme: ThemeData(
-        useMaterial3: true,
-      ),
-      home: MainPage(cameras: cameras),
-    );
-  }
+  State<CameraTestPage> createState() => _CameraTestPageState();
 }
 
-class MainPage extends StatefulWidget {
-  const MainPage({required this.cameras, Key? key}) : super(key: key);
-  final List<CameraDescription> cameras;
-
-  @override
-  State<MainPage> createState() => _MainPageState();
-}
-
-class _MainPageState extends State<MainPage> {
-  late CameraController cameraController;
+class _CameraTestPageState extends State<CameraTestPage> {
+  late final List<CameraDescription> cameras;
+  late final CameraController cameraController;
   late Future<void> cameraValue;
+
+  Future<void> initiateCamera() async {
+    cameras = await availableCameras();
+    cameraController = CameraController(cameras[0], ResolutionPreset.high);
+    cameraValue = cameraController.initialize();
+  }
 
   @override
   void initState() {
+    initiateCamera();
     super.initState();
-    cameraController = CameraController(widget.cameras[0],ResolutionPreset.high);
-    cameraValue = cameraController.initialize();
   }
 
   @override
@@ -52,9 +35,7 @@ class _MainPageState extends State<MainPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Camera Practice', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white)),
-        backgroundColor: Colors.green,
-        centerTitle: true,
+        title: const Text('Camera Test'),
       ),
       body: SingleChildScrollView(
         child: Center(
@@ -62,8 +43,8 @@ class _MainPageState extends State<MainPage> {
             children: [
               FutureBuilder(
                   future: cameraValue,
-                  builder: (context,snapshot) {
-                    if(snapshot.connectionState==ConnectionState.done){
+                  builder: (context, snapshot) {
+                    if (snapshot.connectionState == ConnectionState.done) {
                       return Column(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
@@ -74,23 +55,14 @@ class _MainPageState extends State<MainPage> {
                                 ? CameraPreview(cameraController)
                                 : const Text('Camera Off'),
                           ),
-                          const SizedBox(height: 30),
-                          ElevatedButton(
-                            child: const Text('On Camera'),
-                            onPressed: () {
-                            },
-                          ),
                         ],
                       );
-                    }
-                    else{
-                      return Center(
+                    } else {
+                      return const Center(
                         child: CircularProgressIndicator(),
                       );
-
                     }
-                  }
-              )
+                  })
             ],
           ),
         ),
